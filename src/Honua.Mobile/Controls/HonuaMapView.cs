@@ -1,4 +1,6 @@
 using Microsoft.Maui.Handlers;
+using System.Collections.ObjectModel;
+using Honua.Mobile.Models;
 
 namespace Honua.Mobile.Controls;
 
@@ -162,9 +164,9 @@ public class HonuaMapView : View, IHonuaMapView
         Handler?.Invoke(nameof(FitToBounds), new { bounds, padding, animated });
     }
 
-    protected virtual void OnMapTapped(MapTappedEventArgs e) => MapTapped?.Invoke(this, e);
-    protected virtual void OnCameraChanged(MapCameraChangedEventArgs e) => CameraChanged?.Invoke(this, e);
-    protected virtual void OnFeatureSelected(FeatureSelectedEventArgs e) => FeatureSelected?.Invoke(this, e);
+    public virtual void OnMapTapped(MapTappedEventArgs e) => MapTapped?.Invoke(this, e);
+    public virtual void OnCameraChanged(MapCameraChangedEventArgs e) => CameraChanged?.Invoke(this, e);
+    public virtual void OnFeatureSelected(FeatureSelectedEventArgs e) => FeatureSelected?.Invoke(this, e);
 }
 
 /// <summary>

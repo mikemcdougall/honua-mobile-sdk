@@ -54,7 +54,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\Honua.Mobile\Honua.Mobile.csproj" />
+		<ProjectReference Include="..\..\src\Honua.Mobile.Core\Honua.Mobile.Core.csproj" />
 	</ItemGroup>
 
 </Project>

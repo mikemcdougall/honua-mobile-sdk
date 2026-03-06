@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Honua.Mobile.Models;
 
 namespace Honua.Mobile.Controls;
 

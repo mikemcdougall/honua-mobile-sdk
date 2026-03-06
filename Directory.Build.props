@@ -41,17 +41,32 @@
 
   <!-- Package version management -->
   <ItemGroup>
+    <!-- MAUI Core Packages -->
     <PackageVersion Include="Microsoft.Maui.Controls" Version="8.0.14" />
     <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.14" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+
+    <!-- Community Toolkit -->
     <PackageVersion Include="CommunityToolkit.Maui" Version="7.0.1" />
     <PackageVersion Include="CommunityToolkit.Maui.Maps" Version="2.0.2" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+
+    <!-- gRPC and Communication -->
     <PackageVersion Include="Grpc.Net.Client" Version="2.60.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.25.2" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
+
+    <!-- Data Storage -->
     <PackageVersion Include="SQLite-net-pcl" Version="1.8.116" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.6" />
+
+    <!-- Microsoft Extensions -->
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageVersion Include="System.Text.Json" Version="8.0.0" />
+
+    <!-- Geospatial -->
+    <PackageVersion Include="NetTopologySuite" Version="2.5.0" />
 
     <!-- Test packages -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />

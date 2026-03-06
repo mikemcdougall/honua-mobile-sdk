@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Package Properties -->
+    <PackageId>Honua.Mobile.Core</PackageId>
+    <Title>Honua Mobile SDK Core</Title>
+    <Description>Core models and interfaces for Honua Mobile SDK - field data collection, offline sync, and geospatial operations</Description>
+    <Authors>Honua Development Team</Authors>
+    <Copyright>Copyright © 2026 Honua</Copyright>
+    <PackageProjectUrl>https://github.com/mikemcdougall/honua-mobile-sdk</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/mikemcdougall/honua-mobile-sdk</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>mobile;geospatial;gis;mapping;gps;offline;field-collection</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
