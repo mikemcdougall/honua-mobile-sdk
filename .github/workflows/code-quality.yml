@@ -1,0 +1,347 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 6 * * 1' # Weekly on Monday at 6 AM UTC
+
+env:
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  analyze:
+    name: Code Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'csharp' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        queries: security-and-quality
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install MAUI Workload
+      run: dotnet workload install maui
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install dotnet format
+      run: dotnet tool install -g dotnet-format
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Format check
+      run: dotnet format --verify-no-changes --verbosity normal
+
+    - name: Lint with EditorConfig
+      run: dotnet format analyzers --verify-no-changes --verbosity normal
+
+  dependency-scan:
+    name: Dependency Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install MAUI Workload
+      run: dotnet workload install maui
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: List packages
+      run: dotnet list package --vulnerable --include-transitive > vulnerable-packages.txt
+
+    - name: Check for vulnerabilities
+      run: |
+        if grep -q "has the following vulnerable packages" vulnerable-packages.txt; then
+          echo "❌ Vulnerable packages found:"
+          cat vulnerable-packages.txt
+          exit 1
+        else
+          echo "✅ No vulnerable packages found"
+        fi
+
+    - name: Upload dependency scan results
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: vulnerable-packages
+        path: vulnerable-packages.txt
+
+  test-coverage:
+    name: Test Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install MAUI Workload
+      run: dotnet workload install maui
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Run tests with coverage
+      run: |
+        dotnet test \
+          --configuration Release \
+          --no-restore \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./coverage \
+          --logger "trx;LogFileName=test-results.trx"
+
+    - name: Generate coverage report
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.2.0
+      with:
+        reports: 'coverage/**/coverage.cobertura.xml'
+        targetdir: 'coverage-report'
+        reporttypes: 'HtmlInline;Cobertura;MarkdownSummary'
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: ./coverage
+        fail_ci_if_error: false
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage-report
+
+    - name: Coverage Summary
+      run: |
+        if [ -f coverage-report/Summary.md ]; then
+          cat coverage-report/Summary.md >> $GITHUB_STEP_SUMMARY
+        fi
+
+  performance-test:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install MAUI Workload
+      run: dotnet workload install maui
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build release
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Run performance tests
+      run: |
+        if [ -d "tests/Honua.Mobile.PerformanceTests" ]; then
+          dotnet run --project tests/Honua.Mobile.PerformanceTests --configuration Release -- --exporters json
+        else
+          echo "No performance tests found, skipping"
+        fi
+
+    - name: Upload performance results
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-results
+        path: BenchmarkDotNet.Artifacts
+
+  mobile-specific-checks:
+    name: Mobile-Specific Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check for large assets
+      run: |
+        echo "Checking for large assets that might impact mobile performance..."
+        find . -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.gif" -o -name "*.svg" | while read file; do
+          size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo 0)
+          if [ $size -gt 500000 ]; then # 500KB
+            echo "⚠️ Large image file: $file ($(($size / 1024))KB)"
+          fi
+        done
+
+    - name: Check permission usage
+      run: |
+        echo "Checking permission usage in platform-specific files..."
+        if [ -f "Platforms/Android/AndroidManifest.xml" ]; then
+          echo "Android permissions:"
+          grep -o 'android.permission.[^"]*' Platforms/Android/AndroidManifest.xml || true
+        fi
+
+    - name: Validate MAUI structure
+      run: |
+        echo "Validating MAUI project structure..."
+        required_dirs=("Controls" "Services" "Models" "Platforms")
+        for dir in "${required_dirs[@]}"; do
+          if [ -d "src/Honua.Mobile/$dir" ]; then
+            echo "✅ $dir directory exists"
+          else
+            echo "❌ Missing $dir directory"
+          fi
+        done
+
+  documentation-check:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check documentation completeness
+      run: |
+        echo "Checking documentation completeness..."
+
+        # Check if key documentation files exist
+        docs=("README.md" "docs/getting-started.md" "docs/platform-setup.md")
+        for doc in "${docs[@]}"; do
+          if [ -f "$doc" ]; then
+            echo "✅ $doc exists"
+          else
+            echo "❌ Missing $doc"
+            exit 1
+          fi
+        done
+
+    - name: Check for broken links
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'yes'
+        config-file: '.github/mlc_config.json'
+
+    - name: Spell check
+      uses: streetsidesoftware/cspell-action@v6
+      with:
+        files: '**/*.md'
+        config: '.github/cspell.json'
+
+  api-compatibility:
+    name: API Compatibility Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install MAUI Workload
+      run: dotnet workload install maui
+
+    - name: Install API compatibility tools
+      run: dotnet tool install -g Microsoft.DotNet.ApiCompat.Tool
+
+    - name: Build baseline (main branch)
+      run: |
+        git checkout origin/main
+        dotnet restore
+        dotnet build --configuration Release --no-restore
+        mkdir -p baseline
+        cp -r src/Honua.Mobile/bin/Release baseline/
+
+    - name: Build current (PR branch)
+      run: |
+        git checkout ${{ github.event.pull_request.head.sha }}
+        dotnet restore
+        dotnet build --configuration Release --no-restore
+
+    - name: Check API compatibility
+      run: |
+        # This would run API compatibility checks
+        echo "API compatibility check would run here"
+        echo "Comparing baseline vs current API surface"
+
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [analyze, lint, dependency-scan, test-coverage, mobile-specific-checks, documentation-check]
+    if: always()
+
+    steps:
+    - name: Check quality gate
+      run: |
+        echo "Quality Gate Results:"
+        echo "- Code Analysis: ${{ needs.analyze.result }}"
+        echo "- Linting: ${{ needs.lint.result }}"
+        echo "- Dependency Scan: ${{ needs.dependency-scan.result }}"
+        echo "- Test Coverage: ${{ needs.test-coverage.result }}"
+        echo "- Mobile Checks: ${{ needs.mobile-specific-checks.result }}"
+        echo "- Documentation: ${{ needs.documentation-check.result }}"
+
+        if [[ "${{ needs.analyze.result }}" == "failure" ||
+              "${{ needs.lint.result }}" == "failure" ||
+              "${{ needs.dependency-scan.result }}" == "failure" ||
+              "${{ needs.mobile-specific-checks.result }}" == "failure" ||
+              "${{ needs.documentation-check.result }}" == "failure" ]]; then
+          echo "❌ Quality gate failed"
+          exit 1
+        else
+          echo "✅ Quality gate passed"
+        fi

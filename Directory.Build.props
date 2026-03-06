@@ -1,0 +1,65 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+
+    <!-- Common properties -->
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <WarningsNotAsErrors />
+
+    <!-- Package properties -->
+    <Authors>Honua Development Team</Authors>
+    <Company>Honua</Company>
+    <Copyright>Copyright © 2026 Honua</Copyright>
+    <Product>Honua Mobile SDK</Product>
+    <PackageProjectUrl>https://github.com/mikemcdougall/honua-mobile-sdk</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mikemcdougall/honua-mobile-sdk</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageTags>maui;mobile;geospatial;gis;mapping;gps;offline;field-collection</PackageTags>
+
+    <!-- Source control -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Code analysis -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Default</AnalysisMode>
+  </PropertyGroup>
+
+  <!-- Package version management -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="8.0.14" />
+    <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+    <PackageVersion Include="CommunityToolkit.Maui" Version="7.0.1" />
+    <PackageVersion Include="CommunityToolkit.Maui.Maps" Version="2.0.2" />
+    <PackageVersion Include="Grpc.Net.Client" Version="2.60.0" />
+    <PackageVersion Include="Google.Protobuf" Version="3.25.2" />
+    <PackageVersion Include="SQLite-net-pcl" Version="1.8.116" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.0" />
+
+    <!-- Test packages -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageVersion Include="xunit" Version="2.6.6" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.6" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.0" />
+    <PackageVersion Include="Moq" Version="4.20.70" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Testing" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>
